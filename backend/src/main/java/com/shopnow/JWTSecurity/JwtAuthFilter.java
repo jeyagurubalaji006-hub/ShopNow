@@ -22,24 +22,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
 
-@Override
-protected void doFilterInternal(HttpServletRequest request, 
-                                HttpServletResponse response, 
-                                FilterChain filterChain) throws ServletException, IOException {
+    @Override
+    protected void doFilterInternal(@NonNull HttpServletRequest request, 
+                                    @NonNull HttpServletResponse response, 
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-    String authHeader = request.getHeader("Authorization");
+        String authHeader = request.getHeader("Authorization");
 
-    // If no Bearer token is provided, pass through to the next filter
-    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-        filterChain.doFilter(request, response);
-        return;
-    }
+        // 1. If no Bearer token, pass through to let SecurityConfig handle public endpoints
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-    // Process JWT token verification below...
-    String token = authHeader.substring(7);
-    // ...
-}
+        // 2. Extract token from header
+        String token = authHeader.substring(7);
 
+        // 3. Validate token and set security context
         try {
             final String email = jwtUtil.extractEmail(token);
 
@@ -54,8 +53,7 @@ protected void doFilterInternal(HttpServletRequest request,
                 }
             }
         } catch (Exception e) {
-            // Invalid/expired token - request proceeds unauthenticated and will be rejected
-            // by the security chain if the endpoint requires authentication.
+            // Invalid or expired token — proceed without authentication
         }
 
         filterChain.doFilter(request, response);
