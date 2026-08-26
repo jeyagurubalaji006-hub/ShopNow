@@ -22,19 +22,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
 
-    @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+@Override
+protected void doFilterInternal(HttpServletRequest request, 
+                                HttpServletResponse response, 
+                                FilterChain filterChain) throws ServletException, IOException {
 
-        Private String authHeader = request.getHeader("Authorization");
+    String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+    // If no Bearer token is provided, pass through to the next filter
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        filterChain.doFilter(request, response);
+        return;
+    }
 
-        final String token = authHeader.substring(7);
+    // Process JWT token verification below...
+    String token = authHeader.substring(7);
+    // ...
+}
 
         try {
             final String email = jwtUtil.extractEmail(token);
